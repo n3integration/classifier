@@ -11,5 +11,8 @@ classifiersvc:
 package: classifiersvc
 	docker build -t n3integration/classifier .
 
+test:
+	cd naive && go test
+
 clean:
 	cd cmd/classifiersvc && rm -rf classifiersvc

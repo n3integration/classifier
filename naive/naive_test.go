@@ -2,8 +2,15 @@ package naive
 
 import "testing"
 
+func NewNaiveClassifier() *NaiveClassifier {
+	return &NaiveClassifier{
+		f2c: make(map[string]map[string]int),
+		cc:  make(map[string]int),
+	}
+}
+
 func TestAddFeature(t *testing.T) {
-	classifier := NewClassifier()
+	classifier := NewNaiveClassifier()
 	classifier.addFeature("quick", "good")
 	assertFeatureCount(t, classifier, "quick", "good", 1.0)
 	assertFeatureCount(t, classifier, "quick", "bad", 0.0)
@@ -19,7 +26,7 @@ func assertFeatureCount(t *testing.T, classifier *NaiveClassifier, feature strin
 }
 
 func TestAddCategory(t *testing.T) {
-	classifier := NewClassifier()
+	classifier := NewNaiveClassifier()
 	assertCategoryCount(t, classifier, "good", 0.0)
 	classifier.addCategory("good")
 	assertCategoryCount(t, classifier, "good", 1.0)
@@ -37,7 +44,7 @@ func assertCategoryCount(t *testing.T, classifier *NaiveClassifier, category str
 }
 
 func TestTrain(t *testing.T) {
-	classifier := NewClassifier()
+	classifier := NewNaiveClassifier()
 	if err := classifier.Train("The quick brown fox jumps over the lazy dog", "good"); err != nil {
 		t.Error("Classifier training failed")
 	}

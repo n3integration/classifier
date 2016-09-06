@@ -21,7 +21,7 @@ func NewClassifier() classifier.Classifier {
 }
 
 // Trains the classifier
-func (this *NaiveClassifier) Train(doc string, category string) error {
+func (this NaiveClassifier) Train(doc string, category string) error {
 	features, err := classifier.Tokenize(doc)
 	if err != nil {
 		return err
@@ -39,7 +39,7 @@ func (this *NaiveClassifier) Train(doc string, category string) error {
 
 // Classifies a document. If the document cannot be classified (eg. because
 // the classifier has not been trained), an error is returned.
-func (this *NaiveClassifier) Classify(doc string) (string, error) {
+func (this NaiveClassifier) Classify(doc string) (string, error) {
 	var err error
 	max := 0.0
 	classification := ""
