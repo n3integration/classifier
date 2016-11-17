@@ -2,54 +2,56 @@ package naive
 
 import (
 	"errors"
-	"github.com/n3integration/classifier"
 	"sync"
+
+	"github.com/n3integration/classifier"
 )
 
-// Naive bayes classifier
-type NaiveClassifier struct {
-	f2c  map[string]map[string]int // feature to category counts
-	cc   map[string]int            // category count
-	lock sync.RWMutex
+// Classifier implements a naive bayes classifier
+type Classifier struct {
+	f2c map[string]map[string]int
+	cc  map[string]int
+	sync.RWMutex
 }
 
-func NewClassifier() classifier.Classifier {
-	return &NaiveClassifier{
+// New initializes a new naive Classifier
+func New() *Classifier {
+	return &Classifier{
 		f2c: make(map[string]map[string]int),
 		cc:  make(map[string]int),
 	}
 }
 
-// Trains the classifier
-func (this NaiveClassifier) Train(doc string, category string) error {
+// Train provides supervisory training to the classifier
+func (c *Classifier) Train(doc string, category string) error {
 	features, err := classifier.Tokenize(doc)
 	if err != nil {
 		return err
 	}
 
-	this.lock.Lock()
-	defer this.lock.Unlock()
+	c.Lock()
+	defer c.Unlock()
 
 	for _, feature := range features {
-		this.addFeature(feature, category)
+		c.addFeature(feature, category)
 	}
-	this.addCategory(category)
+	c.addCategory(category)
 	return nil
 }
 
-// Classifies a document. If the document cannot be classified (eg. because
-// the classifier has not been trained), an error is returned.
-func (this NaiveClassifier) Classify(doc string) (string, error) {
+// Classify attempts to classify a document. If the document cannot be classified
+// (eg. because the classifier has not been trained), an error is returned.
+func (c *Classifier) Classify(doc string) (string, error) {
 	var err error
 	max := 0.0
 	classification := ""
 	probabilities := make(map[string]float64)
 
-	this.lock.RLock()
-	defer this.lock.RUnlock()
+	c.RLock()
+	defer c.RUnlock()
 
-	for _, category := range this.categories() {
-		probabilities[category], err = this.probability(doc, category)
+	for _, category := range c.categories() {
+		probabilities[category], err = c.probability(doc, category)
 		if err != nil {
 			return "", err
 		}
@@ -59,89 +61,89 @@ func (this NaiveClassifier) Classify(doc string) (string, error) {
 		}
 	}
 	if classification == "" {
-		return "", errors.New("classification unknown")
+		return "", errors.New("unable to classify ")
 	}
 	return classification, nil
 }
 
-func (this *NaiveClassifier) addFeature(feature string, category string) {
-	if _, ok := this.f2c[feature]; !ok {
-		this.f2c[feature] = make(map[string]int)
+func (c *Classifier) addFeature(feature string, category string) {
+	if _, ok := c.f2c[feature]; !ok {
+		c.f2c[feature] = make(map[string]int)
 	}
-	this.f2c[feature][category] += 1
+	c.f2c[feature][category]++
 }
 
-func (this *NaiveClassifier) featureCount(feature string, category string) float64 {
-	if _, ok := this.f2c[feature]; ok {
-		return float64(this.f2c[feature][category])
-	}
-	return 0.0
-}
-
-func (this *NaiveClassifier) addCategory(category string) {
-	this.cc[category] += 1
-}
-
-func (this *NaiveClassifier) categoryCount(category string) float64 {
-	if _, ok := this.cc[category]; ok {
-		return float64(this.cc[category])
+func (c *Classifier) featureCount(feature string, category string) float64 {
+	if _, ok := c.f2c[feature]; ok {
+		return float64(c.f2c[feature][category])
 	}
 	return 0.0
 }
 
-func (this *NaiveClassifier) count() int {
+func (c *Classifier) addCategory(category string) {
+	c.cc[category]++
+}
+
+func (c *Classifier) categoryCount(category string) float64 {
+	if _, ok := c.cc[category]; ok {
+		return float64(c.cc[category])
+	}
+	return 0.0
+}
+
+func (c *Classifier) count() int {
 	sum := 0
-	for _, value := range this.cc {
+	for _, value := range c.cc {
 		sum += value
 	}
 	return sum
 }
 
-func (this *NaiveClassifier) categories() []string {
+func (c *Classifier) categories() []string {
 	var keys []string
-	for k := range this.cc {
+	for k := range c.cc {
 		keys = append(keys, k)
 	}
 	return keys
 }
 
-func (this *NaiveClassifier) featureProbability(feature string, category string) float64 {
-	if this.categoryCount(category) == 0 {
+func (c *Classifier) featureProbability(feature string, category string) float64 {
+	if c.categoryCount(category) == 0 {
 		return 0.0
 	}
-	return this.featureCount(feature, category) / this.categoryCount(category)
+	return c.featureCount(feature, category) / c.categoryCount(category)
 }
 
-func (this *NaiveClassifier) weightedProbability(feature string, category string) float64 {
-	return this.weightedProbabilityExt(feature, category, 1.0, 0.5)
+func (c *Classifier) weightedProbability(feature string, category string) float64 {
+	return c.weightedProbabilityExt(feature, category, 1.0, 0.5)
 }
 
-func (this *NaiveClassifier) weightedProbabilityExt(feature string, category string, weight float64, assumedProb float64) float64 {
+func (c *Classifier) weightedProbabilityExt(feature string, category string, weight float64, assumedProb float64) float64 {
 	sum := 0.0
-	probability := this.featureProbability(feature, category)
-	for _, category := range this.categories() {
-		sum += this.featureCount(feature, category)
+	probability := c.featureProbability(feature, category)
+	for _, category := range c.categories() {
+		sum += c.featureCount(feature, category)
 	}
 	return ((weight * assumedProb) + (sum * probability)) / (weight + sum)
 }
 
-func (this *NaiveClassifier) probability(doc string, category string) (float64, error) {
-	categoryProbability := this.categoryCount(category) / float64(this.count())
-	docProbability, err := this.docProbability(doc, category)
+func (c *Classifier) probability(doc string, category string) (float64, error) {
+	categoryProbability := c.categoryCount(category) / float64(c.count())
+	docProbability, err := c.docProbability(doc, category)
 	if err != nil {
 		return 0.0, nil
 	}
 	return docProbability * categoryProbability, nil
 }
 
-func (this *NaiveClassifier) docProbability(doc string, category string) (float64, error) {
+func (c *Classifier) docProbability(doc string, category string) (float64, error) {
 	features, err := classifier.Tokenize(doc)
 	if err != nil {
 		return 0.0, err
 	}
 	probability := 1.0
 	for _, feature := range features {
-		probability *= this.weightedProbability(feature, category)
+		probability *= c.weightedProbability(feature, category)
 	}
 	return probability, nil
 }

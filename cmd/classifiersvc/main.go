@@ -16,7 +16,7 @@ func init() {
 func main() {
 	defaultPort := "9000"
 
-	classifier := naive.NewClassifier()
+	classifier := naive.New()
 
 	http.Handle("/classify", logger(service.NewClassificationHandler(classifier)))
 	http.Handle("/train", logger(service.NewTrainingHandler(classifier)))

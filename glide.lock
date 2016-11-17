@@ -1,10 +1,22 @@
-hash: edb4c0685fc69192c3be438597fffb1f3886565d0f9a9c8d68b6a2b0395943de
-updated: 2016-11-15T23:12:03.726188858-05:00
+hash: 303993f4570765ed4f1fcba8eb13c3eb1e712b474522026453060a94f1ea11b9
+updated: 2016-11-16T20:04:42.47861006-05:00
 imports:
 - name: github.com/Sirupsen/logrus
   version: d26492970760ca5d33129d2d799e34be5c4782eb
+- name: github.com/stretchr/testify
+  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
+  subpackages:
+  - assert
 - name: golang.org/x/sys
   version: c200b10b5d5e122be351b67af224adc6128af5bf
   subpackages:
   - unix
-testImports: []
+testImports:
+- name: github.com/davecgh/go-spew
+  version: 6d212800a42e8ab5c146b8ace3490ee17e5225f9
+  subpackages:
+  - spew
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib

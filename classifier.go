@@ -5,18 +5,22 @@ import (
 	"strings"
 )
 
+// Classifier provides a simple interface for different text classifiers
 type Classifier interface {
+	// Train allows clients to train the classifier
 	Train(doc string, category string) error
+	// Classify performs a classification on the input corpus and assumes that
+	// the underlying classifier has been trained.
 	Classify(doc string) (string, error)
 }
 
-// Predicate to determine whether or not a token should be considered a
+// IsAWord is a predicate to determine whether or not a token should be considered a
 // valid word (i.e. greater than two but less than 20 characters).
 func IsAWord(v string) bool {
 	return len(v) > 2 && len(v) < 20
 }
 
-// Extracts and normalizes all words from a text corpus
+// Tokenize extracts and normalizes all words from a text corpus
 func Tokenize(doc string) ([]string, error) {
 	tokenizer, err := regexp.Compile("\\W+")
 
@@ -28,7 +32,7 @@ func Tokenize(doc string) ([]string, error) {
 	return Map(Filter(tokens, IsAWord), strings.ToLower), nil
 }
 
-// Extracts term frequencies from a text corpus
+// WordCounts extracts term frequencies from a text corpus
 func WordCounts(doc string) (map[string]int, error) {
 	tokens, err := Tokenize(doc)
 
@@ -43,7 +47,7 @@ func WordCounts(doc string) (map[string]int, error) {
 	return wc, nil
 }
 
-// Applies f to each element of vs
+// Map applies f to each element of the supplied input slice
 func Map(vs []string, f func(string) string) []string {
 	vsm := make([]string, len(vs))
 	for i, v := range vs {
@@ -52,7 +56,8 @@ func Map(vs []string, f func(string) string) []string {
 	return vsm
 }
 
-// Removes elements from vs where the predicate is satisfied
+// Filter removes elements from the input slice where the supplied predicate
+// is satisfied
 func Filter(vs []string, f func(string) bool) []string {
 	vsf := make([]string, 0)
 	for _, v := range vs {

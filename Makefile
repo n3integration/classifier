@@ -1,18 +1,22 @@
 ################################################################
 # (c) 2016 n3integration
-# ################################################################
-.PHONY: clean package
+################################################################
+.PHONY: clean package test
 
-all: classifiersvc package
+all: vendor test classifiersvc package
 
-classifiersvc:
-	cd cmd/classifiersvc && CGO_ENABLED=0 GOOS=linux time go build -a -installsuffix cgo -o classifiersvc
+vendor:
+	@glide install
+
+classifiersvc: test
+	cd cmd/classifiersvc
+	CGO_ENABLED=0 GOOS=linux time go build -a -installsuffix cgo -o classifiersvc
 
 package: classifiersvc
-	docker build -t n3integration/classifier .
+	@docker build -t n3integration/classifier .
 
-test:
-	cd naive && go test
+test: vendor
+	@go test -v $(shell glide novendor)
 
 clean:
 	cd cmd/classifiersvc && rm -rf classifiersvc
