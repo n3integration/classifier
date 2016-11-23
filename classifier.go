@@ -14,6 +14,9 @@ type Classifier interface {
 	Classify(doc string) (string, error)
 }
 
+type predicate func(string) bool
+type mapper func(string) string
+
 // IsAWord is a predicate to determine whether or not a token should be considered a
 // valid word (i.e. greater than two but less than 20 characters).
 func IsAWord(v string) bool {
@@ -48,7 +51,7 @@ func WordCounts(doc string) (map[string]int, error) {
 }
 
 // Map applies f to each element of the supplied input slice
-func Map(vs []string, f func(string) string) []string {
+func Map(vs []string, f mapper) []string {
 	vsm := make([]string, len(vs))
 	for i, v := range vs {
 		vsm[i] = f(v)
@@ -58,7 +61,7 @@ func Map(vs []string, f func(string) string) []string {
 
 // Filter removes elements from the input slice where the supplied predicate
 // is satisfied
-func Filter(vs []string, f func(string) bool) []string {
+func Filter(vs []string, f predicate) []string {
 	vsf := make([]string, 0)
 	for _, v := range vs {
 		if f(v) {
