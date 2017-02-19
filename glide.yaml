@@ -1,8 +1,0 @@
-package: github.com/n3integration/classifier
-import:
-- package: github.com/Sirupsen/logrus
-  version: v0.11.0
-- package: github.com/stretchr/testify
-  version: v1.1.4
-  subpackages:
-  - assert

@@ -2,8 +2,6 @@ package naive
 
 import (
 	"testing"
-
-	"github.com/stretchr/testify/assert"
 )
 
 func TestAddFeature(t *testing.T) {
@@ -23,7 +21,7 @@ func TestAddCategory(t *testing.T) {
 	assertCategoryCount(t, classifier, "good", 1.0)
 	categories := classifier.categories()
 
-	assert.Equal(t, classifier.count(), len(categories))
+	assertEqual(t, float64(classifier.count()), float64(len(categories)))
 }
 
 func TestTrain(t *testing.T) {
@@ -49,10 +47,16 @@ func TestTrain(t *testing.T) {
 
 func assertCategoryCount(t *testing.T, classifier *Classifier, category string, count float64) {
 	v := classifier.categoryCount(category)
-	assert.Equal(t, count, v)
+	assertEqual(t, count, v)
 }
 
 func assertFeatureCount(t *testing.T, classifier *Classifier, feature string, category string, count float64) {
 	v := classifier.featureCount(feature, category)
-	assert.Equal(t, count, v)
+	assertEqual(t, count, v)
+}
+
+func assertEqual(t *testing.T, expected, actual float64) {
+	if actual != expected {
+		t.Errorf("Expectation mismatch. Expected(%d) <=> Actual (%d)", expected, actual)
+	}
 }
