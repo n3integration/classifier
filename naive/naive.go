@@ -115,10 +115,10 @@ func (c *Classifier) featureProbability(feature string, category string) float64
 }
 
 func (c *Classifier) weightedProbability(feature string, category string) float64 {
-	return c.weightedProbabilityExt(feature, category, 1.0, 0.5)
+	return c.variableWeightedProbability(feature, category, 1.0, 0.5)
 }
 
-func (c *Classifier) weightedProbabilityExt(feature string, category string, weight float64, assumedProb float64) float64 {
+func (c *Classifier) variableWeightedProbability(feature string, category string, weight float64, assumedProb float64) float64 {
 	sum := 0.0
 	probability := c.featureProbability(feature, category)
 	for _, category := range c.categories() {

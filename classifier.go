@@ -17,12 +17,6 @@ type Classifier interface {
 type predicate func(string) bool
 type mapper func(string) string
 
-// IsAWord is a predicate to determine whether or not a token should be considered a
-// valid word (i.e. greater than two but less than 20 characters).
-func IsAWord(v string) bool {
-	return len(v) > 2 && len(v) < 20
-}
-
 // Tokenize extracts and normalizes all words from a text corpus
 func Tokenize(doc string) ([]string, error) {
 	tokenizer, err := regexp.Compile("\\W+")
@@ -32,7 +26,7 @@ func Tokenize(doc string) ([]string, error) {
 	}
 
 	tokens := tokenizer.Split(doc, -1)
-	return Map(Filter(tokens, IsAWord), strings.ToLower), nil
+	return Map(Filter(tokens, IsNotStopWord), strings.ToLower), nil
 }
 
 // WordCounts extracts term frequencies from a text corpus
@@ -47,6 +41,7 @@ func WordCounts(doc string) (map[string]int, error) {
 	for _, token := range tokens {
 		wc[token] = wc[token] + 1
 	}
+
 	return wc, nil
 }
 
