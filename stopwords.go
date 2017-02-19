@@ -1,6 +1,9 @@
 package classifier
 
-import "sort"
+import (
+	"sort"
+	"strings"
+)
 
 var (
 	stopwords = []string{
@@ -16,10 +19,11 @@ var (
 )
 
 // IsStopWord performs a binary search against a list of known english stop words
-// it assumes that v is normalized as a lowercase string and returns true if v is
-// a stop word; false otherwise
+// returns true if v is a stop word; false otherwise
 func IsStopWord(v string) bool {
-	return sort.SearchStrings(stopwords, v) == numStopwords
+	v = strings.ToLower(v)
+	index := sort.SearchStrings(stopwords, v)
+	return index >= numStopwords || stopwords[index] == v
 }
 
 // IsNotStopWord is the inverse function of IsStopWord
