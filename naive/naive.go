@@ -7,6 +7,9 @@ import (
 	"github.com/n3integration/classifier"
 )
 
+// ErrNotClassified indicates that a document could not be classified
+var ErrNotClassified = errors.New("unable to classify document")
+
 // Classifier implements a naive bayes classifier
 type Classifier struct {
 	f2c map[string]map[string]int
@@ -61,7 +64,7 @@ func (c *Classifier) Classify(doc string) (string, error) {
 		}
 	}
 	if classification == "" {
-		return "", errors.New("unable to classify ")
+		return "", ErrNotClassified
 	}
 	return classification, nil
 }
