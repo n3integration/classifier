@@ -3,8 +3,8 @@ package classifier
 import "testing"
 
 var (
-	text               = "The quick brown fox jumped over the lazy dog"
-	expectedTokenCount = 7
+	text     = "The quick brown fox jumped over the lazy dog"
+	expected = 7
 )
 
 func TestTokenize(t *testing.T) {
@@ -14,7 +14,7 @@ func TestTokenize(t *testing.T) {
 		t.Error("failed to tokenize text:", err)
 	}
 
-	if len(tokens) != expectedTokenCount {
+	if len(tokens) != expected {
 		t.Error("Expected %d tokens; actual: %d", expected, len(tokens))
 	}
 }
@@ -26,7 +26,7 @@ func TestWordCounts(t *testing.T) {
 		t.Error("failed to get word counts:", err)
 	}
 
-	if len(wc) != expectedTokenCount {
+	if len(wc) != expected {
 		t.Error("Expected %d; actual %d", expected, wc)
 	}
 
