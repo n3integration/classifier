@@ -12,16 +12,16 @@ var ErrNotClassified = errors.New("unable to classify document")
 
 // Classifier implements a naive bayes classifier
 type Classifier struct {
-	f2c map[string]map[string]int
-	cc  map[string]int
+	feat2cat map[string]map[string]int
+	catCount map[string]int
 	sync.RWMutex
 }
 
 // New initializes a new naive Classifier
 func New() *Classifier {
 	return &Classifier{
-		f2c: make(map[string]map[string]int),
-		cc:  make(map[string]int),
+		feat2cat: make(map[string]map[string]int),
+		catCount: make(map[string]int),
 	}
 }
 
@@ -45,8 +45,8 @@ func (c *Classifier) Train(doc string, category string) error {
 // Classify attempts to classify a document. If the document cannot be classified
 // (eg. because the classifier has not been trained), an error is returned.
 func (c *Classifier) Classify(doc string) (string, error) {
-	var err error
 	max := 0.0
+	var err error
 	classification := ""
 	probabilities := make(map[string]float64)
 
@@ -54,8 +54,7 @@ func (c *Classifier) Classify(doc string) (string, error) {
 	defer c.RUnlock()
 
 	for _, category := range c.categories() {
-		probabilities[category], err = c.probability(doc, category)
-		if err != nil {
+		if probabilities[category], err = c.probability(doc, category); err != nil {
 			return "", err
 		}
 		if probabilities[category] > max {
@@ -66,37 +65,37 @@ func (c *Classifier) Classify(doc string) (string, error) {
 	if classification == "" {
 		return "", ErrNotClassified
 	}
-	return classification, nil
+	return classification, err
 }
 
 func (c *Classifier) addFeature(feature string, category string) {
-	if _, ok := c.f2c[feature]; !ok {
-		c.f2c[feature] = make(map[string]int)
+	if _, ok := c.feat2cat[feature]; !ok {
+		c.feat2cat[feature] = make(map[string]int)
 	}
-	c.f2c[feature][category]++
+	c.feat2cat[feature][category]++
 }
 
 func (c *Classifier) featureCount(feature string, category string) float64 {
-	if _, ok := c.f2c[feature]; ok {
-		return float64(c.f2c[feature][category])
+	if _, ok := c.feat2cat[feature]; ok {
+		return float64(c.feat2cat[feature][category])
 	}
 	return 0.0
 }
 
 func (c *Classifier) addCategory(category string) {
-	c.cc[category]++
+	c.catCount[category]++
 }
 
 func (c *Classifier) categoryCount(category string) float64 {
-	if _, ok := c.cc[category]; ok {
-		return float64(c.cc[category])
+	if _, ok := c.catCount[category]; ok {
+		return float64(c.catCount[category])
 	}
 	return 0.0
 }
 
 func (c *Classifier) count() int {
 	sum := 0
-	for _, value := range c.cc {
+	for _, value := range c.catCount {
 		sum += value
 	}
 	return sum
@@ -104,7 +103,7 @@ func (c *Classifier) count() int {
 
 func (c *Classifier) categories() []string {
 	var keys []string
-	for k := range c.cc {
+	for k := range c.catCount {
 		keys = append(keys, k)
 	}
 	return keys
