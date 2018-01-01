@@ -16,12 +16,7 @@ type Classifier interface {
 
 // Tokenize extracts and normalizes all words from a text corpus
 func Tokenize(doc string) ([]string, error) {
-	tokenizer, err := regexp.Compile("\\W+")
-
-	if err != nil {
-		return nil, err
-	}
-
+	tokenizer := regexp.MustCompile("\\W+")
 	tokens := tokenizer.Split(doc, -1)
 	return Map(Filter(tokens, IsNotStopWord), strings.ToLower), nil
 }
@@ -29,7 +24,6 @@ func Tokenize(doc string) ([]string, error) {
 // WordCounts extracts term frequencies from a text corpus
 func WordCounts(doc string) (map[string]int, error) {
 	tokens, err := Tokenize(doc)
-
 	if err != nil {
 		return nil, err
 	}
