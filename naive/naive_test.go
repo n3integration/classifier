@@ -78,6 +78,6 @@ func assertFeatureCount(t *testing.T, classifier *Classifier, feature string, ca
 
 func assertEqual(t *testing.T, expected, actual float64) {
 	if actual != expected {
-		t.Errorf("Expectation mismatch. Expected(%d) <=> Actual (%d)", expected, actual)
+		t.Errorf("Expectation mismatch. Expected(%f) <=> Actual (%f)", expected, actual)
 	}
 }

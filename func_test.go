@@ -25,9 +25,9 @@ func TestFilter(t *testing.T) {
 	})
 
 	if len(result) != 1 {
-		t.Error("incorrect number of results %v", len(result))
+		t.Error("incorrect number of results:", len(result))
 	}
 	if result[0] != "world" {
-		t.Error("incorrect result: %v", result[0])
+		t.Error("incorrect result:", result[0])
 	}
 }

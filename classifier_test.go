@@ -15,7 +15,7 @@ func TestTokenize(t *testing.T) {
 	}
 
 	if len(tokens) != expected {
-		t.Error("Expected %d tokens; actual: %d", expected, len(tokens))
+		t.Errorf("Expected %d tokens; actual: %d", expected, len(tokens))
 	}
 }
 
@@ -27,12 +27,12 @@ func TestWordCounts(t *testing.T) {
 	}
 
 	if len(wc) != expected {
-		t.Error("Expected %d; actual %d", expected, wc)
+		t.Errorf("Expected %d; actual %d", expected, len(wc))
 	}
 
 	for key, value := range wc {
 		if value != 1 {
-			t.Error("Incorrect term frequency for %s: %d", key, value)
+			t.Errorf("Incorrect term frequency for %s: %d", key, value)
 		}
 	}
 }
