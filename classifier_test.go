@@ -8,11 +8,7 @@ var (
 )
 
 func TestTokenize(t *testing.T) {
-	tokens, err := Tokenize(text)
-
-	if err != nil {
-		t.Error("failed to tokenize text:", err)
-	}
+	tokens := Tokenize(text)
 
 	if len(tokens) != expected {
 		t.Errorf("Expected %d tokens; actual: %d", expected, len(tokens))

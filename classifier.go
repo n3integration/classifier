@@ -15,19 +15,15 @@ type Classifier interface {
 }
 
 // Tokenize extracts and normalizes all words from a text corpus
-func Tokenize(doc string) ([]string, error) {
+func Tokenize(doc string) []string {
 	tokenizer := regexp.MustCompile("\\W+")
 	tokens := tokenizer.Split(doc, -1)
-	return Map(Filter(tokens, IsNotStopWord), strings.ToLower), nil
+	return Map(Filter(tokens, IsNotStopWord), strings.ToLower)
 }
 
 // WordCounts extracts term frequencies from a text corpus
 func WordCounts(doc string) (map[string]int, error) {
-	tokens, err := Tokenize(doc)
-	if err != nil {
-		return nil, err
-	}
-
+	tokens := Tokenize(doc)
 	wc := make(map[string]int)
 	for _, token := range tokens {
 		wc[token] = wc[token] + 1

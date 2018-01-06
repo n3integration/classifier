@@ -27,10 +27,7 @@ func New() *Classifier {
 
 // Train provides supervisory training to the classifier
 func (c *Classifier) Train(doc string, category string) error {
-	features, err := classifier.Tokenize(doc)
-	if err != nil {
-		return err
-	}
+	features := classifier.Tokenize(doc)
 
 	c.Lock()
 	defer c.Unlock()
@@ -139,10 +136,7 @@ func (c *Classifier) probability(doc string, category string) (float64, error) {
 }
 
 func (c *Classifier) docProbability(doc string, category string) (float64, error) {
-	features, err := classifier.Tokenize(doc)
-	if err != nil {
-		return 0.0, err
-	}
+	features := classifier.Tokenize(doc)
 	probability := 1.0
 	for _, feature := range features {
 		probability *= c.weightedProbability(feature, category)
