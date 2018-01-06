@@ -14,13 +14,6 @@ type Classifier interface {
 	Classify(doc string) (string, error)
 }
 
-// Tokenize extracts and normalizes all words from a text corpus
-func Tokenize(doc string) []string {
-	tokenizer := regexp.MustCompile("\\W+")
-	tokens := tokenizer.Split(doc, -1)
-	return Map(Filter(tokens, IsNotStopWord), strings.ToLower)
-}
-
 // WordCounts extracts term frequencies from a text corpus
 func WordCounts(doc string) (map[string]int, error) {
 	tokens := Tokenize(doc)
