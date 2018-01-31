@@ -9,25 +9,42 @@ var words = []string{
 	"hello", "world",
 }
 
+func streamWords() chan string {
+	stream := make(chan string)
+	go func() {
+		for _, word := range words {
+			stream <- word
+		}
+		close(stream)
+	}()
+	return stream
+}
+
 func TestMap(t *testing.T) {
-	result := Map(words, strings.ToUpper)
-	for i, word := range result {
+	i := 0
+	results := Map(streamWords(), strings.ToUpper)
+	for word := range results {
 		expected := strings.ToUpper(words[i])
 		if expected != word {
 			t.Errorf("did not match expected result %v <> %v", expected, word)
 		}
+		i++
 	}
 }
 
 func TestFilter(t *testing.T) {
-	result := Filter(words, func(s string) bool {
-		return s != "hello"
+	results := Filter(streamWords(), func(s string) bool {
+		return s != words[0]
 	})
 
-	if len(result) != 1 {
-		t.Error("incorrect number of results:", len(result))
+	i := 0
+	for word := range results {
+		i++
+		if word != words[1] {
+			t.Error("incorrect result:", word)
+		}
 	}
-	if result[0] != "world" {
-		t.Error("incorrect result:", result[0])
+	if i != 1 {
+		t.Error("incorrect number of results:", i)
 	}
 }

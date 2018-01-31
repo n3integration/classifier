@@ -1,5 +1,5 @@
 # classifier
-A concurrent naive bayes text classifier.
+A naive bayes text classifier.
 
 [ ![Codeship Status for n3integration/classifier](https://app.codeship.com/projects/a9a8adf0-d14a-0135-6c51-26e28af241d2/status?branch=master)](https://app.codeship.com/projects/262403)
 [![codecov](https://codecov.io/gh/n3integration/classifier/branch/master/graph/badge.svg)](https://codecov.io/gh/n3integration/classifier)
@@ -18,11 +18,11 @@ go get github.com/n3integration/classifier
 import "github.com/n3integration/classifier/naive"
 
 classifier := naive.New()
-classifier.Train("The quick brown fox jumped over the lazy dog", "ham")
-classifier.Train("Earn a degree online", "ham")
-classifier.Train("Earn cash quick online", "spam")
+classifier.TrainString("The quick brown fox jumped over the lazy dog", "ham")
+classifier.TrainString("Earn a degree online", "ham")
+classifier.TrainString("Earn cash quick online", "spam")
 
-if classification, err := classifier.Classify("Earn your masters degree online"); err == nil {
+if classification, err := classifier.ClassifyString("Earn your masters degree online"); err == nil {
     fmt.Println("Classification => ", classification) // ham
 } else {
     fmt.Println("error: ", err)
@@ -34,12 +34,12 @@ if classification, err := classifier.Classify("Earn your masters degree online")
 - Fork the repository
 - Create a local feature branch
 - Run `gofmt`
-- Bump the `VERSION` file according to [semantic versioning](https://semver.org/)
+- Bump the `VERSION` file using [semantic versioning](https://semver.org/)
 - Submit a pull request
 
 ## License
 
-Copyright 2016 n3integration@gmail.com
+Copyright 2018 n3integration@gmail.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

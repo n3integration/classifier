@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-const (
+var (
 	ham  = "The quick brown fox jumps over the lazy dog"
 	spam = "Earn cash quick online"
 )
@@ -32,11 +32,11 @@ func TestAddCategory(t *testing.T) {
 func TestTrain(t *testing.T) {
 	classifier := New()
 
-	if err := classifier.Train(ham, "good"); err != nil {
+	if err := classifier.TrainString(ham, "good"); err != nil {
 		t.Error("classifier training failed")
 	}
 
-	if err := classifier.Train(spam, "bad"); err != nil {
+	if err := classifier.TrainString(spam, "bad"); err != nil {
 		t.Error("classifier training failed")
 	}
 
@@ -51,16 +51,16 @@ func TestClassify(t *testing.T) {
 	text := "Quick way to make cash"
 
 	t.Run("Empty classifier", func(t *testing.T) {
-		if _, err := classifier.Classify(text); err != ErrNotClassified {
+		if _, err := classifier.ClassifyString(text); err != ErrNotClassified {
 			t.Errorf("expected classification error; received: %v", err)
 		}
 	})
 
 	t.Run("Trained classifier", func(t *testing.T) {
-		classifier.Train(ham, "good")
-		classifier.Train(spam, "bad")
+		classifier.TrainString(ham, "good")
+		classifier.TrainString(spam, "bad")
 
-		if _, err := classifier.Classify(text); err != nil {
+		if _, err := classifier.ClassifyString(text); err != nil {
 			t.Error("document incorrectly classified")
 		}
 	})
