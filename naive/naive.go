@@ -59,9 +59,7 @@ func (c *Classifier) Classify(r io.Reader) (string, error) {
 	defer c.RUnlock()
 
 	for _, category := range c.categories() {
-		if probabilities[category], err = c.probability(r, category); err != nil {
-			return "", err
-		}
+		probabilities[category] = c.probability(r, category)
 		if probabilities[category] > max {
 			max = probabilities[category]
 			classification = category
@@ -139,21 +137,18 @@ func (c *Classifier) variableWeightedProbability(feature string, category string
 	return ((weight * assumedProb) + (sum * probability)) / (weight + sum)
 }
 
-func (c *Classifier) probability(r io.Reader, category string) (float64, error) {
+func (c *Classifier) probability(r io.Reader, category string) float64 {
 	categoryProbability := c.categoryCount(category) / float64(c.count())
-	docProbability, err := c.docProbability(r, category)
-	if err != nil {
-		return 0.0, nil
-	}
-	return docProbability * categoryProbability, nil
+	docProbability := c.docProbability(r, category)
+	return docProbability * categoryProbability
 }
 
-func (c *Classifier) docProbability(r io.Reader, category string) (float64, error) {
+func (c *Classifier) docProbability(r io.Reader, category string) float64 {
 	probability := 1.0
 	for feature := range c.tokenizer.Tokenize(r) {
 		probability *= c.weightedProbability(feature, category)
 	}
-	return probability, nil
+	return probability
 }
 
 func asReader(text string) io.Reader {
