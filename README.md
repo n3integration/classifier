@@ -16,7 +16,7 @@ go get github.com/n3integration/classifier
 
 ### Classification
 
-There are two methods of classification: `io.Reader` or `string`. To perform classification of strings, use the `TrainString` or `ClassifyString` functions. To classify larger sources, use the `Train` and `Classify` functions that take an `io.Reader` as input.
+There are two methods of classification: `io.Reader` or `string`. To classify strings, use the `TrainString` or `ClassifyString` functions. To classify larger sources, use the `Train` and `Classify` functions that take an `io.Reader` as input.
 
 ```go
 import "github.com/n3integration/classifier/naive"
