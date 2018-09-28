@@ -16,10 +16,6 @@ func TestTokenize(t *testing.T) {
 		tokens := NewTokenizer().Tokenize(toReader(text))
 		doTokenizeTest(t, tokens)
 	})
-	t.Run("Regexp Tokenizer", func(t *testing.T) {
-		tokens := NewRegexTokenizer().Tokenize(toReader(text))
-		doTokenizeTest(t, tokens)
-	})
 }
 
 func toReader(text string) io.Reader {

@@ -1,34 +1,52 @@
 package classifier
 
+const defaultBufferSize = 50
+
 // Predicate provides a predicate function
 type Predicate func(string) bool
 
 // Mapper provides a map function
 type Mapper func(string) string
 
-// Map applies f to each element of the supplied input slice
-func Map(vs chan string, f Mapper) chan string {
-	outstream := make(chan string)
+// Map applies f to each element of the supplied input channel
+func Map(vs chan string, f ...Mapper) chan string {
+	stream := make(chan string, defaultBufferSize)
+
 	go func() {
 		for v := range vs {
-			outstream <- f(v)
+			for _, fn := range f {
+				v = fn(v)
+			}
+			stream <- v
 		}
-		close(outstream)
+		close(stream)
 	}()
-	return outstream
+
+	return stream
 }
 
-// Filter removes elements from the input slice where the supplied predicate
+// Filter removes elements from the input channel where the supplied predicate
 // is satisfied
-func Filter(vs chan string, f Predicate) chan string {
-	outstream := make(chan string)
-	go func() {
-		for v := range vs {
-			if f(v) {
-				outstream <- v
+// Filter is a Predicate aggregation
+func Filter(vs chan string, filters ...Predicate) chan string {
+	stream := make(chan string, defaultBufferSize)
+	apply := func(text string) bool {
+		for _, f := range filters {
+			if !f(text) {
+				return false
 			}
 		}
-		close(outstream)
+		return true
+	}
+
+	go func() {
+		for text := range vs {
+			if apply(text) {
+				stream <- text
+			}
+		}
+		close(stream)
 	}()
-	return outstream
+
+	return stream
 }

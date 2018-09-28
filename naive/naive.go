@@ -12,27 +12,42 @@ import (
 // ErrNotClassified indicates that a document could not be classified
 var ErrNotClassified = errors.New("unable to classify document")
 
+// Option provides a functional setting for the Classifier
+type Option func(c *Classifier) error
+
 // Classifier implements a naive bayes classifier
 type Classifier struct {
 	feat2cat  map[string]map[string]int
 	catCount  map[string]int
 	tokenizer classifier.Tokenizer
-	sync.RWMutex
+	mu        sync.RWMutex
 }
 
-// New initializes a new naive Classifier
-func New() *Classifier {
-	return &Classifier{
+// New initializes a new naive Classifier using the standard tokenizer
+func New(opts ...Option) *Classifier {
+	c := &Classifier{
 		feat2cat:  make(map[string]map[string]int),
 		catCount:  make(map[string]int),
 		tokenizer: classifier.NewTokenizer(),
+	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
+}
+
+// Tokenizer overrides the classifier's default Tokenizer
+func Tokenizer(t classifier.Tokenizer) Option {
+	return func(c *Classifier) error {
+		c.tokenizer = t
+		return nil
 	}
 }
 
 // Train provides supervisory training to the classifier
 func (c *Classifier) Train(r io.Reader, category string) error {
-	c.Lock()
-	defer c.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 
 	for feature := range c.tokenizer.Tokenize(r) {
 		c.addFeature(feature, category)
@@ -55,8 +70,8 @@ func (c *Classifier) Classify(r io.Reader) (string, error) {
 	classification := ""
 	probabilities := make(map[string]float64)
 
-	c.RLock()
-	defer c.RUnlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 
 	for _, category := range c.categories() {
 		probabilities[category] = c.probability(r, category)
@@ -65,6 +80,7 @@ func (c *Classifier) Classify(r io.Reader) (string, error) {
 			classification = category
 		}
 	}
+
 	if classification == "" {
 		return "", ErrNotClassified
 	}
@@ -152,5 +168,5 @@ func (c *Classifier) docProbability(r io.Reader, category string) float64 {
 }
 
 func asReader(text string) io.Reader {
-	return bytes.NewBuffer([]byte(text))
+	return bytes.NewBufferString(text)
 }
