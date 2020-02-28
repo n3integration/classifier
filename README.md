@@ -1,5 +1,5 @@
 # classifier
-A naive bayes text classifier.
+General purpose text classifier
 
 [![codecov](https://codecov.io/gh/n3integration/classifier/branch/master/graph/badge.svg)](https://codecov.io/gh/n3integration/classifier)
 [![Go Report Card](https://goreportcard.com/badge/github.com/n3integration/classifier)](https://goreportcard.com/report/github.com/n3integration/classifier)
@@ -11,24 +11,36 @@ A naive bayes text classifier.
 go get github.com/n3integration/classifier
 ```
 
+## I
+
 ## Usage
 
 ### Classification
 
-There are two methods of classification: `io.Reader` or `string`. To classify strings, use the `TrainString` or `ClassifyString` functions. To classify larger sources, use the `Train` and `Classify` functions that take an `io.Reader` as input.
+There are two methods of classification: `io.Reader` or `string`. To classify strings, use the `TrainString` 
+or `ClassifyString` functions. To classify larger sources, use the `Train` and `Classify` functions that 
+take an `io.Reader` as input.
 
 ```go
-import "github.com/n3integration/classifier/naive"
+package main
 
-classifier := naive.New()
-classifier.TrainString("The quick brown fox jumped over the lazy dog", "ham")
-classifier.TrainString("Earn a degree online", "ham")
-classifier.TrainString("Earn cash quick online", "spam")
+import (
+	"fmt"
+	
+	"github.com/n3integration/classifier/naive"
+)
 
-if classification, err := classifier.ClassifyString("Earn your masters degree online"); err == nil {
-    fmt.Println("Classification => ", classification) // ham
-} else {
-    fmt.Println("error: ", err)
+func main() {
+    classifier := naive.New()
+    classifier.TrainString("The quick brown fox jumped over the lazy dog", "ham")
+    classifier.TrainString("Earn a degree online", "ham")
+    classifier.TrainString("Earn cash quick online", "spam")
+    
+    if classification, err := classifier.ClassifyString("Earn your masters degree online"); err == nil {
+        fmt.Println("Classification => ", classification) // ham
+    } else {
+        fmt.Println("error: ", err)
+    }	
 }
 ```
 
