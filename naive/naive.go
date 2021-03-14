@@ -6,7 +6,7 @@ import (
 	"io"
 	"sync"
 
-	"github.com/n3integration/classifier"
+	"github.com/kokizzu/classifier"
 )
 
 // ErrNotClassified indicates that a document could not be classified

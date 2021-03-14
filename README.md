@@ -3,13 +3,13 @@ A naive bayes text classifier.
 
 [ ![Codeship Status for n3integration/classifier](https://app.codeship.com/projects/a9a8adf0-d14a-0135-6c51-26e28af241d2/status?branch=master)](https://app.codeship.com/projects/262403)
 [![codecov](https://codecov.io/gh/n3integration/classifier/branch/master/graph/badge.svg)](https://codecov.io/gh/n3integration/classifier)
-[![Go Report Card](https://goreportcard.com/badge/github.com/n3integration/classifier)](https://goreportcard.com/report/github.com/n3integration/classifier)
-[![Documentation](https://godoc.org/github.com/n3integration/classifier?status.svg)](http://godoc.org/github.com/n3integration/classifier)
+[![Go Report Card](https://goreportcard.com/badge/github.com/kokizzu/classifier)](https://goreportcard.com/report/github.com/kokizzu/classifier)
+[![Documentation](https://godoc.org/github.com/kokizzu/classifier?status.svg)](http://godoc.org/github.com/kokizzu/classifier)
 
 ## Installation
 
 ```bash
-go get github.com/n3integration/classifier
+go get github.com/kokizzu/classifier
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ go get github.com/n3integration/classifier
 There are two methods of classification: `io.Reader` or `string`. To classify strings, use the `TrainString` or `ClassifyString` functions. To classify larger sources, use the `Train` and `Classify` functions that take an `io.Reader` as input.
 
 ```go
-import "github.com/n3integration/classifier/naive"
+import "github.com/kokizzu/classifier/naive"
 
 classifier := naive.New()
 classifier.TrainString("The quick brown fox jumped over the lazy dog", "ham")
