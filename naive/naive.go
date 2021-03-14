@@ -62,34 +62,37 @@ func (c *Classifier) TrainString(doc string, category string) error {
 	return c.Train(asReader(doc), category)
 }
 
-// Classify attempts to classify a document. If the document cannot be classified
-// (eg. because the classifier has not been trained), an error is returned.
-func (c *Classifier) Classify(r io.Reader) (string, error) {
-	max := 0.0
-	var err error
-	classification := ""
+// get probabilities
+func (c *Classifier) Probabilities(str string) (map[string]float64, string) {
 	probabilities := make(map[string]float64)
 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
+	best := 0.0
+	cat := ``
+
 	for _, category := range c.categories() {
-		probabilities[category] = c.probability(r, category)
-		if probabilities[category] > max {
-			max = probabilities[category]
-			classification = category
+		prob := c.probability(asReader(str), category)
+		if prob > 0 {
+			probabilities[category] = prob
+		}
+		if prob > best {
+			best = prob
+			cat = category
 		}
 	}
 
-	if classification == "" {
-		return "", ErrNotClassified
-	}
-	return classification, err
+	return probabilities, cat
 }
 
 // ClassifyString provides convenience classification for strings
 func (c *Classifier) ClassifyString(doc string) (string, error) {
-	return c.Classify(asReader(doc))
+	_, best := c.Probabilities(doc)
+	if best == `` {
+		return best, ErrNotClassified
+	}
+	return best, nil
 }
 
 func (c *Classifier) addFeature(feature string, category string) {

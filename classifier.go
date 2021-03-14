@@ -8,11 +8,10 @@ type Classifier interface {
 	Train(io.Reader, string) error
 	// TrainString allows clients to train the classifier using a string
 	TrainString(string, string) error
-	// Classify performs a classification on the input corpus and assumes that
-	// the underlying classifier has been trained.
-	Classify(io.Reader) (string, error)
 	// ClassifyString performs text classification using a string
 	ClassifyString(string) (string, error)
+	// get all probabilities
+	Probabilities(string) (map[string]float64, error)
 }
 
 // WordCounts extracts term frequencies from a text corpus

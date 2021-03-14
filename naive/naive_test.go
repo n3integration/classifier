@@ -1,6 +1,7 @@
 package naive
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -46,6 +47,34 @@ func TestTrain(t *testing.T) {
 	assertCategoryCount(t, classifier, "bad", 1)
 }
 
+func TestProbability(t *testing.T) {
+	classifier := New()
+
+	t.Run(`Probabilities`, func(t *testing.T) {
+		for z := 0; z < 1; z++ {
+			classifier.TrainString(`aaa bbb ccc ddd`, "A")
+			classifier.TrainString(`111 222 333 444 zzz`, "X")
+			classifier.TrainString(`bbb ccc ddd eee`, "A")
+			classifier.TrainString(`222 333 444 555 zzz`, "X")
+			classifier.TrainString(`bbb ccc ddd eee fff`, "A")
+			classifier.TrainString(`222 333 444 555 666 zzz`, "X")
+		}
+
+		m, _ := classifier.Probabilities(`bbb ccc ddd`)
+		if m[`A`] <= m[`X`] {
+			t.Errorf(`A=%.2f value should be greater than X=%.2f`,m[`X`],m[`A`])
+		}
+		//m[`good`] > 0
+
+		m, _ = classifier.Probabilities(`222 333 zzz`)
+		fmt.Println(m)
+		if m[`X`] <= m[`A`] {
+			t.Errorf(`X=%.2f value should be greater than A=%.2f`, m[`X`], m[`A`])
+		}
+		
+	})
+}
+
 func TestClassify(t *testing.T) {
 	classifier := New()
 	text := "Quick way to make cash"
@@ -63,6 +92,14 @@ func TestClassify(t *testing.T) {
 		if _, err := classifier.ClassifyString(text); err != nil {
 			t.Error("document incorrectly classified")
 		}
+		if cla, err := classifier.ClassifyString(ham); err != nil || cla != `good` {
+			t.Error("document incorrectly classified: 'ham' should be 'good', but got "+cla)
+		}
+		if cla, err := classifier.ClassifyString(spam); err != nil || cla != `bad` {
+			t.Error("document incorrectly classified: 'spam' should be 'bad', but got "+cla)
+		}
+		fmt.Println(classifier.Probabilities(ham))
+		fmt.Println(classifier.Probabilities(spam))
 	})
 }
 
