@@ -31,6 +31,12 @@ if classification, err := classifier.ClassifyString("Earn your masters degree on
 } else {
     fmt.Println("error: ", err)
 }
+
+probabilities, best := classifier.Probabilities("Quick cash online")
+fmt.Println(probabilities)
+// map[ham:0.041666666666666664 spam:0.1736111111111111]
+fmt.Println(best)
+// spam
 ```
 
 ## Contributing
