@@ -28,15 +28,15 @@ jobs:
           golint .
 
       - name: Test
-          run: go test -v -cover $(go list ./...)
+        run: go test -v -cover $(go list ./...)
 
       - name: Coverage
-          run: |
+        run: |
             for pkg in $(go list ./...); do go test -v -coverprofile=coverage_tmp.txt -covermode=atomic $pkg || ERROR="Error testing $pkg"; tail -n +2 coverage_tmp.txt >> coverage.txt || die "Unable to append coverage for $pkg"; done
             bash <(curl -s https://codecov.io/bash)
 
       - name: Release
-          run: |
+        run: |
             VERSION=$(cat VERSION | grep "^version" | sed -e 's/version=//')
             go get github.com/aktau/github-release
             github-release release --user n3integration --repo classifier --tag v$VERSION || echo "duplicate release"
