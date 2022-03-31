@@ -1,3 +1,3 @@
 module github.com/n3integration/classifier
 
-go 1.14
+go 1.17

@@ -87,6 +87,31 @@ func (c *Classifier) Classify(r io.Reader) (string, error) {
 	return classification, err
 }
 
+// Probabilities runs the provided string through the model and returns
+// the potential probability for each classification
+func (c *Classifier) Probabilities(str string) (map[string]float64, string) {
+	probabilities := make(map[string]float64)
+
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+
+	best := 0.0
+	cat := ``
+
+	for _, category := range c.categories() {
+		prob := c.probability(asReader(str), category)
+		if prob > 0 {
+			probabilities[category] = prob
+		}
+		if prob > best {
+			best = prob
+			cat = category
+		}
+	}
+
+	return probabilities, cat
+}
+
 // ClassifyString provides convenience classification for strings
 func (c *Classifier) ClassifyString(doc string) (string, error) {
 	return c.Classify(asReader(doc))
