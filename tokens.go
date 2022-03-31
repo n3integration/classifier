@@ -40,6 +40,7 @@ func NewTokenizer(opts ...StdOption) *StdTokenizer {
 	return tokenizer
 }
 
+// Tokenize words and return streaming results
 func (t *StdTokenizer) Tokenize(r io.Reader) chan string {
 	tokenizer := bufio.NewScanner(r)
 	tokenizer.Split(bufio.ScanWords)
@@ -59,18 +60,21 @@ func (t *StdTokenizer) pipeline(in chan string) chan string {
 	return Map(Filter(in, t.filters...), t.transforms...)
 }
 
+// BufferSize adjusts the size of the buffered channel
 func BufferSize(size int) StdOption {
 	return func(t *StdTokenizer) {
 		t.bufferSize = size
 	}
 }
 
+// Transforms overrides the list of mappers
 func Transforms(m ...Mapper) StdOption {
 	return func(t *StdTokenizer) {
 		t.transforms = m
 	}
 }
 
+// Filters overrides the list of predicates
 func Filters(f ...Predicate) StdOption {
 	return func(t *StdTokenizer) {
 		t.filters = f
