@@ -37,4 +37,4 @@ jobs:
         run: |
             VERSION=$(cat VERSION | grep "^version" | sed -e 's/version=//')
             go get github.com/aktau/github-release
-            github-release release --user n3integration --repo classifier --tag v$VERSION || echo "duplicate release"
+            $GOPATH/bin/github-release release --user n3integration --repo classifier --tag v$VERSION || echo "duplicate release"
