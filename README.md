@@ -1,5 +1,5 @@
 # classifier
-General purpose text classifier
+General purpose text classifier (naïve bayes, k-nearest neighbors)
 
 [![codecov](https://codecov.io/gh/n3integration/classifier/branch/master/graph/badge.svg)](https://codecov.io/gh/n3integration/classifier)
 [![Go Report Card](https://goreportcard.com/badge/github.com/n3integration/classifier)](https://goreportcard.com/report/github.com/n3integration/classifier)
@@ -15,7 +15,7 @@ go get github.com/n3integration/classifier
 
 ### Classification
 
-There are two methods of classification: `io.Reader` or `string`. To classify strings, use the `TrainString` 
+There are two methods of classifying text data: `io.Reader` or `string`. To classify strings, use the `TrainString` 
 or `ClassifyString` functions. To classify larger sources, use the `Train` and `Classify` functions that 
 take an `io.Reader` as input.
 
