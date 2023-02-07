@@ -17,7 +17,6 @@ jobs:
       - name: Deps
         run: |
           go version
-          go env
 
       - name: Build
         run: go build -v
@@ -35,6 +34,8 @@ jobs:
             bash <(curl -s https://codecov.io/bash)
 
       - name: Release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
             VERSION=$(cat VERSION | grep "^version" | sed -e 's/version=//')
             go install github.com/aktau/github-release
