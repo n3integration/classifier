@@ -4,12 +4,12 @@ import (
 	"math"
 )
 
-// Similarity provides support for row similarity
-type SimilarityScore func(left, right *row) float64
+// SimilarityScore provides pluggable support for row similarity
+type SimilarityScore func(left, right *sparseRow) float64
 
 // EuclideanDistance between rows
-func EuclideanDistance(left, right *row) float64 {
-	distanceTo := func(left, right *row) float64 {
+func EuclideanDistance(left, right *sparseRow) float64 {
+	distanceTo := func(left, right *sparseRow) float64 {
 		score := 0.0
 		terms := make(map[int]float64)
 		for i := 0; i < left.Len(); i++ {
@@ -34,13 +34,13 @@ func EuclideanDistance(left, right *row) float64 {
 }
 
 // CosineSimilarity between rows
-func CosineSimilarity(left, right *row) float64 {
+func CosineSimilarity(left, right *sparseRow) float64 {
 	return left.Dot(right) / (left.L2Norm() * right.L2Norm())
 }
 
-// PearsonCorrelation similarity between rows
-func PearsonCorrelation(left, right *row) float64 {
-	score := func(left, right *row) float64 {
+// PearsonCorrelation between rows
+func PearsonCorrelation(left, right *sparseRow) float64 {
+	score := func(left, right *sparseRow) float64 {
 		n := left.Size()
 		leftSum := left.Sum()
 		rightSum := right.Sum()

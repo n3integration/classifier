@@ -7,10 +7,10 @@ import (
 
 func TestSimilarity(t *testing.T) {
 	allowedVariance := .01
-	row1 := newRow(2)
+	row1 := newSparseRow(2)
 	row1.ind = []int{0, 1}
 	row1.val = []float64{2, -1}
-	row2 := newRow(2)
+	row2 := newSparseRow(2)
 	row2.ind = []int{0, 1}
 	row2.val = []float64{-2, 1}
 
@@ -33,7 +33,7 @@ func TestSimilarity(t *testing.T) {
 			t.Fatalf("expected strong inverse correlation. got %.2f", actual)
 		}
 
-		row3 := newRow(2)
+		row3 := newSparseRow(2)
 		row3.ind = []int{2, 3}
 		row3.val = []float64{4, 5}
 		if actual := PearsonCorrelation(row1, row3); actual != 0 {
