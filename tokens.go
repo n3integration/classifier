@@ -2,6 +2,7 @@ package classifier
 
 import (
 	"bufio"
+	"context"
 	"io"
 	"strings"
 	"unicode"
@@ -11,13 +12,21 @@ import (
 // Tokenizer provides a common interface to tokenize documents
 type Tokenizer interface {
 	// Tokenize breaks the provided document into a channel of tokens
-	Tokenize(io.Reader) chan string
+	Tokenize(context.Context, io.Reader) chan string
 }
 
 // IsWord is a predicate to determine if a string contains at least two
 // characters and doesn't contain any numbers
 func IsWord(v string) bool {
-	return len(v) > 2 && !strings.ContainsAny(v, "01234556789")
+	if len(v) < 2 {
+		return false
+	}
+	for _, r := range v {
+		if unicode.IsLetter(r) {
+			return true
+		}
+	}
+	return false
 }
 
 // StdOption provides configuration settings for a StdTokenizer
@@ -51,19 +60,43 @@ func NewTokenizer(opts ...StdOption) *StdTokenizer {
 }
 
 // Tokenize words and return streaming results
-func (t *StdTokenizer) Tokenize(r io.Reader) chan string {
-	tokenizer := bufio.NewScanner(r)
-	tokenizer.Split(t.splitFn)
-	tokens := make(chan string, t.bufferSize)
+func (t *StdTokenizer) Tokenize(ctx context.Context, r io.Reader) chan string {
+	ch := make(chan string, t.bufferSize)
 
 	go func() {
-		for tokenizer.Scan() {
-			tokens <- tokenizer.Text()
-		}
-		close(tokens)
-	}()
+		defer close(ch)
 
-	return t.pipeline(tokens)
+		scanner := bufio.NewScanner(r)
+		scanner.Split(t.splitFn)
+
+		for scanner.Scan() {
+			token := scanner.Text()
+
+			// Apply transforms
+			for _, m := range t.transforms {
+				token = m(token)
+			}
+
+			// Apply filter predicates
+			keep := true
+			for _, f := range t.filters {
+				if !f(token) {
+					keep = false
+					break
+				}
+			}
+			if !keep {
+				continue
+			}
+
+			select {
+			case ch <- token:
+			case <-ctx.Done():
+				return
+			}
+		}
+	}()
+	return ch
 }
 
 func (t *StdTokenizer) pipeline(in chan string) chan string {
@@ -73,6 +106,9 @@ func (t *StdTokenizer) pipeline(in chan string) chan string {
 // BufferSize adjusts the size of the buffered channel
 func BufferSize(size int) StdOption {
 	return func(t *StdTokenizer) {
+		if size < 1 {
+			size = 1
+		}
 		t.bufferSize = size
 	}
 }

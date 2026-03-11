@@ -38,6 +38,10 @@ func TermFrequency(doc map[string]float64) WeightScheme {
 // LogNorm weight scheme: returns the natural log of the number of occurrences of a term
 func LogNorm(doc map[string]float64) WeightScheme {
 	return func(term string) float64 {
-		return math.Log(1 + doc[term])
+		count := doc[term]
+		if count <= 0 {
+			return 0
+		}
+		return math.Log1p(count)
 	}
 }

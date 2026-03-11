@@ -33,7 +33,7 @@ func main() {
     classifier.TrainString("The quick brown fox jumped over the lazy dog", "ham")
     classifier.TrainString("Earn a degree online", "ham")
     classifier.TrainString("Earn cash quick online", "spam")
-    
+
     if classification, err := classifier.ClassifyString("Earn your masters degree online"); err == nil {
         fmt.Println("Classification => ", classification) // ham
     } else {
@@ -52,7 +52,7 @@ func main() {
 
 ## License
 
-Copyright 2023 n3integration@gmail.com
+Copyright 2026 n3integration@gmail.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

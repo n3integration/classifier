@@ -2,6 +2,7 @@ package knn
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -100,8 +101,9 @@ func (c *Classifier) TrainString(doc string, category string) error {
 }
 
 func (c *Classifier) Train(r io.Reader, category string) error {
+	ctx := context.Background()
 	wordFreq := make(map[string]float64)
-	for text := range c.tokenizer.Tokenize(r) {
+	for text := range c.tokenizer.Tokenize(ctx, r) {
 		count := wordFreq[text]
 		wordFreq[text] = count + 1
 
@@ -122,8 +124,9 @@ func (c *Classifier) ClassifyString(doc string) (string, error) {
 }
 
 func (c *Classifier) Classify(r io.Reader) (string, error) {
+	ctx := context.Background()
 	wordFreq := make(map[string]float64)
-	for text := range c.tokenizer.Tokenize(r) {
+	for text := range c.tokenizer.Tokenize(ctx, r) {
 		count := wordFreq[text]
 		wordFreq[text] = count + 1
 	}

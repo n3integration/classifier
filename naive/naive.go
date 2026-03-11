@@ -2,15 +2,23 @@ package naive
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
+	"strings"
 	"sync"
+	"unicode/utf8"
 
 	"github.com/n3integration/classifier"
 )
 
+const maxCategorySize = 256
+
 // ErrNotClassified indicates that a document could not be classified
 var ErrNotClassified = errors.New("unable to classify document")
+
+// ErrInvalidCategory is returned when a category name fails validation
+var ErrInvalidCategory = errors.New("invalid category: must be non-empty and no longer than 256 characters")
 
 // Option provides a functional setting for the Classifier
 type Option func(c *Classifier) error
@@ -31,9 +39,21 @@ func New(opts ...Option) *Classifier {
 		tokenizer: classifier.NewTokenizer(),
 	}
 	for _, opt := range opts {
-		opt(c)
+		if err := opt(c); err != nil {
+			panic(err)
+		}
 	}
 	return c
+}
+
+func validateCategory(category string) error {
+	if len(strings.TrimSpace(category)) == 0 {
+		return ErrInvalidCategory
+	}
+	if utf8.RuneCountInString(category) > maxCategorySize {
+		return ErrInvalidCategory
+	}
+	return nil
 }
 
 // Tokenizer overrides the classifier's default Tokenizer
@@ -46,10 +66,15 @@ func Tokenizer(t classifier.Tokenizer) Option {
 
 // Train provides supervisory training to the classifier
 func (c *Classifier) Train(r io.Reader, category string) error {
+	if err := validateCategory(category); err != nil {
+		return err
+	}
+
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	for feature := range c.tokenizer.Tokenize(r) {
+	ctx := context.Background()
+	for feature := range c.tokenizer.Tokenize(ctx, r) {
 		c.addFeature(feature, category)
 	}
 
@@ -65,18 +90,22 @@ func (c *Classifier) TrainString(doc string, category string) error {
 // Classify attempts to classify a document. If the document cannot be classified
 // (eg. because the classifier has not been trained), an error is returned.
 func (c *Classifier) Classify(r io.Reader) (string, error) {
-	max := 0.0
-	var err error
-	classification := ""
-	probabilities := make(map[string]float64)
-
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
+	if len(c.catCount) == 0 {
+		return "", ErrNotClassified
+	}
+
+	var err error
+	maxProbability := 0.0
+	classification := ""
+	probabilities := make(map[string]float64)
+
 	for _, category := range c.categories() {
 		probabilities[category] = c.probability(r, category)
-		if probabilities[category] > max {
-			max = probabilities[category]
+		if probabilities[category] > maxProbability {
+			maxProbability = probabilities[category]
 			classification = category
 		}
 	}
@@ -95,8 +124,8 @@ func (c *Classifier) Probabilities(str string) (map[string]float64, string) {
 	c.mu.RLock()
 	defer c.mu.RUnlock()
 
-	best := 0.0
 	cat := ``
+	best := 0.0
 
 	for _, category := range c.categories() {
 		prob := c.probability(asReader(str), category)
@@ -172,8 +201,8 @@ func (c *Classifier) weightedProbability(feature string, category string) float6
 func (c *Classifier) variableWeightedProbability(feature string, category string, weight float64, assumedProb float64) float64 {
 	sum := 0.0
 	probability := c.featureProbability(feature, category)
-	for _, category := range c.categories() {
-		sum += c.featureCount(feature, category)
+	for _, _category := range c.categories() {
+		sum += c.featureCount(feature, _category)
 	}
 	return ((weight * assumedProb) + (sum * probability)) / (weight + sum)
 }
@@ -186,7 +215,8 @@ func (c *Classifier) probability(r io.Reader, category string) float64 {
 
 func (c *Classifier) docProbability(r io.Reader, category string) float64 {
 	probability := 1.0
-	for feature := range c.tokenizer.Tokenize(r) {
+	ctx := context.Background()
+	for feature := range c.tokenizer.Tokenize(ctx, r) {
 		probability *= c.weightedProbability(feature, category)
 	}
 	return probability

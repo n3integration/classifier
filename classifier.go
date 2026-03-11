@@ -1,6 +1,9 @@
 package classifier
 
-import "io"
+import (
+	"context"
+	"io"
+)
 
 // Classifier provides a simple interface for different text classifiers
 type Classifier interface {
@@ -17,7 +20,8 @@ type Classifier interface {
 
 // WordCounts extracts term frequencies from a text corpus
 func WordCounts(r io.Reader) (map[string]int, error) {
-	instream := NewTokenizer().Tokenize(r)
+	ctx := context.Background()
+	instream := NewTokenizer().Tokenize(ctx, r)
 	wc := make(map[string]int)
 	for token := range instream {
 		wc[token] = wc[token] + 1

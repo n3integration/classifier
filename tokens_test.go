@@ -2,9 +2,11 @@ package classifier
 
 import (
 	"bytes"
+	"context"
 	"io"
 	"strings"
 	"testing"
+	"time"
 	"unicode"
 )
 
@@ -29,7 +31,9 @@ func TestTokenize(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.Name, func(t *testing.T) {
-			tokens := NewTokenizer(test.Opts...).Tokenize(toReader(text))
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			tokens := NewTokenizer(test.Opts...).Tokenize(ctx, toReader(text))
 			doTokenizeTest(t, tokens)
 		})
 	}
