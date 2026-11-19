@@ -84,8 +84,12 @@ func TestClassify(t *testing.T) {
 		classifier.TrainString(context.Background(), ham, "good")
 		classifier.TrainString(context.Background(), spam, "bad")
 
-		if _, err := classifier.ClassifyString(context.Background(), text); err != nil {
-			t.Error("document incorrectly classified")
+		got, err := classifier.ClassifyString(context.Background(), text)
+		if err != nil {
+			t.Fatalf("classification failed: %v", err)
+		}
+		if got != "bad" {
+			t.Errorf("document incorrectly classified; expected bad, got %s", got)
 		}
 	})
 }
