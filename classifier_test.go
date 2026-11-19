@@ -1,11 +1,12 @@
 package classifier
 
 import (
+	"context"
 	"testing"
 )
 
 func TestWordCounts(t *testing.T) {
-	wc, err := WordCounts(toReader(text))
+	wc, err := WordCounts(context.Background(), toReader(text))
 
 	if err != nil {
 		t.Error("failed to get word counts:", err)

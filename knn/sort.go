@@ -8,7 +8,7 @@ type Partitioning interface {
 
 func search(values []int, v int) int {
 	low := 0
-	high := len(values)
+	high := len(values) - 1
 	for low <= high {
 		mid := (low + high) / 2
 		if v == values[mid] {

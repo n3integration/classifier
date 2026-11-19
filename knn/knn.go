@@ -96,20 +96,24 @@ func TermIndex(i *index.TermIndex) Option {
 	}
 }
 
-func (c *Classifier) TrainString(doc string, category string) error {
-	return c.Train(asReader(doc), category)
+func (c *Classifier) TrainString(ctx context.Context, doc string, category string) error {
+	return c.Train(ctx, asReader(doc), category)
 }
 
-func (c *Classifier) Train(r io.Reader, category string) error {
-	ctx := context.Background()
+// Train trains the classifier, aborting without recording the
+// document if ctx is cancelled
+func (c *Classifier) Train(ctx context.Context, r io.Reader, category string) error {
 	wordFreq := make(map[string]float64)
-	for text := range c.tokenizer.Tokenize(ctx, r) {
+	err := classifier.ForEach(ctx, c.tokenizer.Tokenize(ctx, r), func(text string) {
 		count := wordFreq[text]
 		wordFreq[text] = count + 1
 
 		if count == 0 {
 			c.index.Add(text)
 		}
+	})
+	if err != nil {
+		return err
 	}
 
 	c.mu.Lock()
@@ -119,16 +123,19 @@ func (c *Classifier) Train(r io.Reader, category string) error {
 	return nil
 }
 
-func (c *Classifier) ClassifyString(doc string) (string, error) {
-	return c.Classify(asReader(doc))
+func (c *Classifier) ClassifyString(ctx context.Context, doc string) (string, error) {
+	return c.Classify(ctx, asReader(doc))
 }
 
-func (c *Classifier) Classify(r io.Reader) (string, error) {
-	ctx := context.Background()
+// Classify classifies a document, returning ctx's error if it is
+// cancelled first
+func (c *Classifier) Classify(ctx context.Context, r io.Reader) (string, error) {
 	wordFreq := make(map[string]float64)
-	for text := range c.tokenizer.Tokenize(ctx, r) {
-		count := wordFreq[text]
-		wordFreq[text] = count + 1
+	err := classifier.ForEach(ctx, c.tokenizer.Tokenize(ctx, r), func(text string) {
+		wordFreq[text]++
+	})
+	if err != nil {
+		return "", err
 	}
 
 	c.mu.RLock()
@@ -162,28 +169,41 @@ func (r topResults) Swap(i, j int) {
 	r[i], r[j] = r[j], r[i]
 }
 
-func (r topResults) topK(k int) map[string]int {
-	count := 0
-	topk := make(map[string]int)
+type tally struct {
+	count int
+	score float64
+}
+
+func (r topResults) topK(k int) map[string]*tally {
+	topk := make(map[string]*tally)
 	for i := 1; i <= k; i++ {
-		count = topk[r[len(r)-i].Category]
-		topk[r[len(r)-i].Category] = count + 1
+		res := r[len(r)-i]
+		t, ok := topk[res.Category]
+		if !ok {
+			t = &tally{}
+			topk[res.Category] = t
+		}
+		t.count++
+		t.score += res.Score
 	}
 	return topk
 }
 
+// query returns the category with the most votes among the k most similar rows.
+// Ties are broken by the higher total similarity, then by category name, so the
+// result does not depend on map iteration order.
 func (r topResults) query(k int) string {
-	max := 0
-	var category string
 	topk := r.topK(int(math.Min(float64(k), float64(len(r)))))
 
-	for cat, count := range topk {
-		if count > max {
-			max = count
-			category = cat
+	var category string
+	var best *tally
+	for cat, t := range topk {
+		if best == nil || t.count > best.count ||
+			(t.count == best.count && (t.score > best.score ||
+				(t.score == best.score && cat < category))) {
+			category, best = cat, t
 		}
 	}
-
 	return category
 }
 

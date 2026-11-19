@@ -72,19 +72,7 @@ func (t *StdTokenizer) Tokenize(ctx context.Context, r io.Reader) chan string {
 		for scanner.Scan() {
 			token := scanner.Text()
 
-			// Apply transforms
-			for _, m := range t.transforms {
-				token = m(token)
-			}
-
-			// Apply filter predicates
-			keep := true
-			for _, f := range t.filters {
-				if !f(token) {
-					keep = false
-					break
-				}
-			}
+			token, keep := t.apply(token)
 			if !keep {
 				continue
 			}
@@ -97,6 +85,19 @@ func (t *StdTokenizer) Tokenize(ctx context.Context, r io.Reader) chan string {
 		}
 	}()
 	return ch
+}
+
+// apply runs the transforms and then the filters over a token
+func (t *StdTokenizer) apply(token string) (string, bool) {
+	for _, m := range t.transforms {
+		token = m(token)
+	}
+	for _, f := range t.filters {
+		if !f(token) {
+			return token, false
+		}
+	}
+	return token, true
 }
 
 func (t *StdTokenizer) pipeline(in chan string) chan string {
@@ -134,6 +135,11 @@ func Filters(f ...Predicate) StdOption {
 	}
 }
 
+// isDelimiter reports whether r separates words
+func isDelimiter(r rune) bool {
+	return unicode.IsSpace(r) || unicode.IsPunct(r) || unicode.IsSymbol(r)
+}
+
 // ScanAlphaWords is a function that splits text on whitespace, punctuation, and symbols;
 // derived bufio.ScanWords
 func ScanAlphaWords(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -142,8 +148,7 @@ func ScanAlphaWords(data []byte, atEOF bool) (advance int, token []byte, err err
 	for width := 0; start < len(data); start += width {
 		var r rune
 		r, width = utf8.DecodeRune(data[start:])
-
-		if !unicode.IsSpace(r) && !unicode.IsPunct(r) && !unicode.IsSymbol(r) {
+		if !isDelimiter(r) {
 			break
 		}
 	}
@@ -152,7 +157,7 @@ func ScanAlphaWords(data []byte, atEOF bool) (advance int, token []byte, err err
 	for width, i := 0, start; i < len(data); i += width {
 		var r rune
 		r, width = utf8.DecodeRune(data[i:])
-		if unicode.IsSpace(r) || unicode.IsPunct(r) || unicode.IsSymbol(r) {
+		if isDelimiter(r) {
 			return i + width, data[start:i], nil
 		}
 	}
