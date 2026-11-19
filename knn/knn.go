@@ -96,20 +96,24 @@ func TermIndex(i *index.TermIndex) Option {
 	}
 }
 
-func (c *Classifier) TrainString(doc string, category string) error {
-	return c.Train(asReader(doc), category)
+func (c *Classifier) TrainString(ctx context.Context, doc string, category string) error {
+	return c.Train(ctx, asReader(doc), category)
 }
 
-func (c *Classifier) Train(r io.Reader, category string) error {
-	ctx := context.Background()
+// Train trains the classifier, aborting without recording the
+// document if ctx is cancelled
+func (c *Classifier) Train(ctx context.Context, r io.Reader, category string) error {
 	wordFreq := make(map[string]float64)
-	for text := range c.tokenizer.Tokenize(ctx, r) {
+	err := classifier.ForEach(ctx, c.tokenizer.Tokenize(ctx, r), func(text string) {
 		count := wordFreq[text]
 		wordFreq[text] = count + 1
 
 		if count == 0 {
 			c.index.Add(text)
 		}
+	})
+	if err != nil {
+		return err
 	}
 
 	c.mu.Lock()
@@ -119,16 +123,19 @@ func (c *Classifier) Train(r io.Reader, category string) error {
 	return nil
 }
 
-func (c *Classifier) ClassifyString(doc string) (string, error) {
-	return c.Classify(asReader(doc))
+func (c *Classifier) ClassifyString(ctx context.Context, doc string) (string, error) {
+	return c.Classify(ctx, asReader(doc))
 }
 
-func (c *Classifier) Classify(r io.Reader) (string, error) {
-	ctx := context.Background()
+// Classify classifies a document, returning ctx's error if it is
+// cancelled first
+func (c *Classifier) Classify(ctx context.Context, r io.Reader) (string, error) {
 	wordFreq := make(map[string]float64)
-	for text := range c.tokenizer.Tokenize(ctx, r) {
-		count := wordFreq[text]
-		wordFreq[text] = count + 1
+	err := classifier.ForEach(ctx, c.tokenizer.Tokenize(ctx, r), func(text string) {
+		wordFreq[text]++
+	})
+	if err != nil {
+		return "", err
 	}
 
 	c.mu.RLock()

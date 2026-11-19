@@ -1,6 +1,7 @@
 package knn
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -58,7 +59,7 @@ func TestClassifier(t *testing.T) {
 	}
 
 	for _, data := range testdata {
-		category, err := knn.ClassifyString(data.Headline)
+		category, err := knn.ClassifyString(context.Background(), data.Headline)
 		if err != nil {
 			t.Fatalf("failed to classify %s dataDir: %s", data.Name, err)
 		}
@@ -76,5 +77,5 @@ func load(knn *Classifier, category, filename string) error {
 		return fmt.Errorf("failed to load test data: %w", err)
 	}
 	defer f.Close()
-	return knn.Train(f, category)
+	return knn.Train(context.Background(), f, category)
 }

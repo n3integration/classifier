@@ -17,24 +17,27 @@ go get github.com/n3integration/classifier
 
 There are two methods of classifying text data: `io.Reader` or `string`. To classify strings, use the `TrainString` 
 or `ClassifyString` functions. To classify larger sources, use the `Train` and `Classify` functions that 
-take an `io.Reader` as input.
+take an `io.Reader` as input. All of them accept a `context.Context` as their first argument; cancelling it aborts
+the operation and returns the context's error.
 
 ```go
 package main
 
 import (
+	"context"
 	"fmt"
 	
 	"github.com/n3integration/classifier/naive"
 )
 
 func main() {
+    ctx := context.Background()
     classifier := naive.New()
-    classifier.TrainString("The quick brown fox jumped over the lazy dog", "ham")
-    classifier.TrainString("Earn a degree online", "ham")
-    classifier.TrainString("Earn cash quick online", "spam")
+    classifier.TrainString(ctx, "The quick brown fox jumped over the lazy dog", "ham")
+    classifier.TrainString(ctx, "Earn a degree online", "ham")
+    classifier.TrainString(ctx, "Earn cash quick online", "spam")
 
-    if classification, err := classifier.ClassifyString("Earn your masters degree online"); err == nil {
+    if classification, err := classifier.ClassifyString(ctx, "Earn your masters degree online"); err == nil {
         fmt.Println("Classification => ", classification) // ham
     } else {
         fmt.Println("error: ", err)
